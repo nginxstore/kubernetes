@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-app-deployment
+  labels:
+    app: nodejs-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodejs-app
+  template:
+    metadata:
+      labels:
+        app: nodejs-app
+    spec:
+      imagePullSecrets:
+        - name: nhncloud-regcred # NGINX Plus 이미지가 포함된 개인 이미지 레지스트리 시크릿
+      containers:
+      - name: nodejs-app-container
+        image: nginxstore/example-response-nodejs:latest # NGINX STORE 제공 nodejs 컨테이너 이미지
+        ports:
+        - containerPort: 3000
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+      - name: sidecar-nginx
+        image: 264dee4a-kr1-registry.container.nhncloud.com/nginx-plus/nginx-plus:r32 # NGINX Plus가 포함된 개인 이미지 레지스트리 주소로 변경
+        ports:
+        - containerPort: 80
+        - containerPort: 8080
+        volumeMounts:
+        - name: nginx-conf
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-conf
+          mountPath: /etc/nginx/conf.d/default.conf #컨테이너에 마운트될 경로
+          subPath: default.conf
+          readOnly: true
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: nginx-conf
