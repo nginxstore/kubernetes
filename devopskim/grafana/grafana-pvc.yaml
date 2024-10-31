@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+  namespace: grafana
+spec:
+  accessModes:
+    - ReadWriteOnce # PVC를 사용하는 Pod가 하나의 노드에서만 읽기/쓰기(Read/Write) 가능
+  resources:
+    requests:
+      storage: 5Gi
