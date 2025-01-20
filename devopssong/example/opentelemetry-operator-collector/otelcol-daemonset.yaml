@@ -1,0 +1,73 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: daemonset
+spec:
+  mode: daemonset
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+  serviceAccount: collector
+  env:
+    - name: KUBE_NODE_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: spec.nodeName
+
+  config:
+    receivers:
+      kubeletstats:
+        collection_interval: 10s
+        auth_type: 'serviceAccount'
+        endpoint: '${env:K8S_NODE_NAME}:10250'
+        insecure_skip_verify: true
+        metric_groups:
+          - node
+          - pod
+          - container
+
+    processors:
+      memory_limiter:
+        check_interval: 1s         # 메모리 사용량을 확인하는 주기
+        limit_percentage: 75       # 메모리 사용량의 hard limit %를 정의
+        spike_limit_percentage: 15 # 메모리 사용량의 soft limit을 정의 (limit_percentage - spike_limit_percentage): 75 - 15 = 60%
+      batch:
+        send_batch_size: 10000    # 배치 사이즈(한 번에 보내는 데이터 양)
+        timeout: 10s              # 배치 사이즈에 도달하지 않아도 timeout이 발생하면 보냄
+      k8sattributes:
+        auth_type: 'serviceAccount'
+        filter:
+          node_from_env_var: KUBE_NODE_NAME
+        extract:
+          metadata:
+            - k8s.namespace.name
+            - k8s.deployment.name
+            - k8s.statefulset.name
+            - k8s.daemonset.name
+            - k8s.cronjob.name
+            - k8s.job.name
+            - k8s.node.name
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.pod.start_time
+        passthrough: false
+        pod_association:
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.ip
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.uid
+        - sources:
+          - from: connection
+
+    exporters:
+      debug: {}
+      otlphttp:
+       endpoint: "http://prometheus-svc:9090/api/v1/otlp"
+
+    service:
+      pipelines:
+        metrics:
+          receivers: [kubeletstats]
+          processors: [memory_limiter, k8sattributes, batch]
+          exporters: [otlphttp, debug]
