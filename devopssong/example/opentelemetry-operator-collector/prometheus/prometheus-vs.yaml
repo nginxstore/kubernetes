@@ -1,0 +1,15 @@
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: protmeteheus-vs
+  namespace: monitoring
+spec:
+  host: prom.devopssong.com  # Replace with your domain
+  upstreams:
+    - name: prometheus
+      service: prometheus-svc
+      port: 9090
+  routes:
+    - path: /
+      action:
+        pass: prometheus
