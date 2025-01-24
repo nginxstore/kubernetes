@@ -1,0 +1,41 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: redirect-route
+  namespace: demo
+spec:
+  parentRefs:
+    - name: default-gw
+      namespace: nginx-gateway
+  hostnames:
+  - redirect.devopssong.com
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: nginx-hello-svc
+      port: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /tom
+    filters:
+    - type: RequestRedirect
+      requestRedirect:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /jerry
+        statusCode: 301
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /cat
+    filters:
+    - type: RequestRedirect
+      requestRedirect:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /dog
+        statusCode: 302
