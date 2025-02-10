@@ -1,0 +1,14 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: access-to-cert-secret
+  namespace: cert
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    namespace: nginx-gateway
+  to:
+  - group: ""
+    kind: Secret
+    name: <YOUT CERT SECRET> # 생략 시 nginx-gateway 네임스페이스의 Gateway에서 cert 네임스페이스의 모든 Secret 에 접근 가능
