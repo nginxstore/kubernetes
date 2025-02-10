@@ -1,0 +1,34 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: https-gw
+  namespace: nginx-gateway
+spec:
+  gatewayClassName: nginx
+  listeners:
+  - name: http
+    hostname: <YOUR HOSTNAME> # 도메인
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: demo
+  - name: https
+    hostname: <YOUR HOSTNAME> # 도메인
+    port: 443
+    protocol: HTTPS
+    allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: demo
+    tls:
+      certificateRefs:
+      - group: ""    # K8S Core API Group
+        kind: Secret        
+        name: <YOUT CERT SECRET> # Secret Name
+        namespace: cert

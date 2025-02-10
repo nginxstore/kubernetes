@@ -1,0 +1,18 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: https-route
+  namespace: demo
+spec:
+  parentRefs:
+    - name: https-gw
+      namespace: nginx-gateway
+      sectionName: https
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: nginx-hello-svc
+      port: 80
