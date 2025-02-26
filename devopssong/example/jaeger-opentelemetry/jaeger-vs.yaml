@@ -1,0 +1,15 @@
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: jaeger-vs
+  namespace: monitoring
+spec:
+  host: jaeger.devopssong.com
+  routes:
+  - action:
+      pass: jaeger
+    path: /
+  upstreams:
+  - name: jaeger
+    port: 16686
+    service: jaeger-inmemory-instance-collector
