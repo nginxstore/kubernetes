@@ -1,0 +1,14 @@
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: demo-vs
+spec:
+  host: demo.devopssong.com
+  upstreams:
+    - name: frontend
+      service: frontend-external
+      port: 80
+  routes:
+    - path: /
+      action:
+        pass: frontend

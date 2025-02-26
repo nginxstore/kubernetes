@@ -1,0 +1,22 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: trace-instrumentation
+spec:
+  exporter:
+    endpoint: http://otel-collector-trace-collector:4317 
+  propagators:
+    - tracecontext
+    - baggage
+    - jaeger
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1"
+  python:
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector-trace-collector:4318
+  go:
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector-trace-collector:4318
